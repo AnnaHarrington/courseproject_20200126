@@ -1,0 +1,97 @@
+---
+title: "PA1_template"
+output: html_document
+
+---
+
+#Reproducible Research Project 1
+
+##Loading and preprocessing the data
+```{r}
+#read in the data
+activitydata <- read.csv("activity.csv")
+names(activitydata) <- c("steps", "date", "interval")
+activitydata$date <- as.Date(activitydata$date)
+activitydatanonulls <- activitydata
+```
+
+##Q1: What is the mean total number of steps per day?
+
+```{r}
+#mean total number of steps per day
+#code done
+Q1 <- tapply(activitydata$steps, activitydata$date, sum, na.rm=TRUE)
+#png("plot1.png", width=480, height=480)
+hist(Q1, xlab="Steps", ylab="Frequency", main="Question 1 Graph")
+#dev.off()
+Q1mean <- mean(Q1, na.rm=TRUE)
+Q1median <- median(Q1, na.rm=TRUE)
+#paste("The mean for Q1 is ", Q1mean)
+#paste("The median for Q1 is ", Q1median)
+```
+
+**The median for Q1 is  10395.**
+**The mean for Q1 is  9354.22950819672.**
+
+##Q2: What is the average daily activity pattern?
+
+```{r}
+#average daily activity pattern
+#code done
+Q2 <- tapply(activitydata$steps, activitydata$interval, mean, na.rm = TRUE)
+#png("plot2.png", width=480, height=480)
+plot(as.numeric(names(Q2)), Q2, type = "l", xlab = "5-Minute Intervals", ylab = "Total Steps", main = "Question 2 Graph")
+#dev.off()
+#paste("Interval with the max number of steps is", max(activitydata$steps, na.rm = TRUE))
+```
+
+**Interval with the max number of steps is 806.**
+
+##Q3: Imputing the missing values
+
+```{r}
+#imputing missing values
+#code done
+NAS <- sum(is.na(activitydata$steps))
+#paste("There are ", print(NAS), "NA values in the dataset.")
+#My strategy for filling in the missing values in the dataset is to populate them with the mean steps value per interval (that are not NAs).
+activitydatanonullsmean <- mean(activitydata$steps, na.rm=TRUE)
+activitydatanonulls[is.na(activitydatanonulls)]= activitydatanonullsmean
+activitydatanonulls <- tapply(activitydatanonulls$steps, activitydatanonulls$date, sum, na.rm=TRUE)
+Q3 <- as.numeric(activitydatanonulls)
+#png("plot3.png", width=480, height=480)
+hist(Q3, xlab="Steps", ylab="Frequency", main="Question 3 Graph")
+#dev.off()
+Q3meananswer <- mean(Q3, na.rm=TRUE)
+Q3median <- median(Q3, na.rm=TRUE)
+#paste("The mean for Q3 is ", Q3meananswer)
+#paste("The median for Q3 is ", Q3median)
+#The mean and median have changed since I replaced the NA values.  The impact of imputing missing data on the estimates of the total daily number of steps have increased.
+```
+
+**My strategy for filling in the missing values in the dataset is to populate them with the mean steps value per interval (that are not NAs).**
+**There are  2304 NA values in the dataset.**
+**The mean for Q3 is  10766.1886792453.**
+**The median for Q3 is  10766.1886792453.**
+
+##Q4: Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+#weekdays vs. weekends
+for (i in 1:nrow(activitydata)) {
+  if (weekdays(activitydata$date[i]) == "Saturday" | weekdays(activitydata$date[i]) == "Sunday") {
+    activitydata$isweekday[i] = "yes"
+  } else {
+    activitydata$isweekday[i] = "no"
+  }
+}
+
+weekends <- tapply(activitydata[activitydata$isweekday == "no" ,]$steps, activitydata[activitydata$isweekday == "no" ,]$interval, mean, na.rm = TRUE)
+weekdays <- tapply(activitydata[activitydata$isweekday == "yes" ,]$steps, activitydata[activitydata$isweekday == "yes" ,]$interval, mean, na.rm = TRUE)
+#png("plot4.png", width=480, height=480)
+par(mfrow = c(2, 1), mar=c(4,4,0.25,0.25))
+#mar=c(bottom side, left side, top side, right side)
+plot(as.numeric(names(weekends)), weekends, type = "l", xlab = "5-Minute Intervals Weekends", ylab = "Mean Steps")
+plot(as.numeric(names(weekdays)), weekdays, type = "l", xlab = "5-Minute Intervals Weekdays", ylab = "Mean Steps")
+#dev.off()
+```
